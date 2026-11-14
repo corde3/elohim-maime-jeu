@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>[hidden]{display:none!important} img{max-width:100%}</style>
 <title>Le jeu Elohîm m'aime</title>
+<meta name="description" content="Jeu d'éveil chrétien pour les 3–6 ans : 10 aventures, 30 jeux parlés, prières et diplôme.">
+<meta name="theme-color" content="#D4ECFB">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@400;600;700&display=swap">
@@ -1278,6 +1283,7 @@ h2.pick { font: 700 1.5rem var(--f-display); margin: 22px 0 12px; }
           <button class="btn" id="testVoice">Essayer</button>
         </div>
         <p>Les voix marquées ✨ sont les plus douces et naturelles. Avec Microsoft Edge, choisissez par exemple « Denise » ou « Vivienne » ; avec Chrome, « Google français ».</p>
+        <p><a href="privacy.html">Politique de confidentialité</a> : aucune donnée personnelle n'est collectée.</p>
       </div>
     </section>`;
     $('#hello').onclick = () => say("Bonjour ! Elohîm t'aime très fort ! Choisis une aventure, et gagne des étoiles !");
@@ -1366,6 +1372,11 @@ h2.pick { font: 700 1.5rem var(--f-display); margin: 22px 0 12px; }
 
   homeBtn.onclick = showHome;
   showHome();
+
+  // Application installable et jouable hors ligne
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
 })();
 </script>
 
