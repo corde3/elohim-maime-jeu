@@ -1,0 +1,1373 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important} img{max-width:100%}</style>
+<title>Le jeu Elohîm m'aime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@400;600;700&display=swap">
+<style>
+/* Layout : une île de 10 aventures en cartes "jouets" (ombre pleine), chaque aventure ouvre 3 jeux ; un écran de jeu = consigne parlée + zone de jeu. Monde clair unique, assumé (livre d'éveil). */
+:root {
+  --sky: #D4ECFB;
+  --sky-2: #A6D6F5;
+  --sun: #FFC93C;
+  --grass: #7CC576;
+  --coral: #FF7A59;
+  --ink: #22325A;
+  --muted: #5A6A8B;
+  --paper: #FFFDF6;
+  --card: #FFFFFF;
+  --line: #E6DFCB;
+  --ok: #3FA35A;
+  --ok-bg: #E6F6E4;
+  --wood: #9C6B3F;
+  --f-display: 'Fredoka', 'Trebuchet MS', system-ui, sans-serif;
+  --f-body: 'Andika', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image: linear-gradient(var(--sky) 0, var(--paper) 360px);
+  background-repeat: no-repeat;
+  color: var(--ink);
+  font: 18px/1.5 var(--f-body);
+  -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--sky); }
+button, select { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 4px solid var(--coral); outline-offset: 3px; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--sky); border-bottom: 3px solid var(--sky-2); }
+.bar-in, .wrap {
+  max-width: 980px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar-in { display: flex; align-items: center; gap: 10px; padding-block: 8px; min-height: 64px; }
+.bar .brand { font: 700 1.15rem var(--f-display); margin-right: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 3px solid var(--sun); border-radius: 999px; padding: 4px 12px; font: 700 1rem var(--f-display); white-space: nowrap; }
+.round-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--ink);
+  background: var(--card); font-size: 1.35rem; display: grid; place-items: center;
+  box-shadow: 0 3px 0 var(--ink); flex: none;
+}
+.round-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.round-btn[aria-pressed="false"] { opacity: .55; }
+.wrap { padding-block: 18px 48px; }
+
+/* Accueil */
+.hero { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding-block: 8px 6px; }
+.hero-text { flex: 1 1 300px; min-width: 0; }
+.eyebrow { margin: 0; font: 600 .8rem var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 2px 0 10px; font: 700 clamp(2.3rem, 8vw, 4rem)/1.02 var(--f-display); text-wrap: balance; }
+h1 .heart { color: var(--coral); }
+.sun {
+  width: 118px; height: 118px; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 38% 36%, #FFE38A 0 30%, var(--sun) 31% 100%);
+  box-shadow: 0 0 0 10px rgba(255,201,60,.28), 0 0 0 22px rgba(255,201,60,.13);
+  display: grid; place-items: center; font-size: 3rem; animation: bob 4s ease-in-out infinite;
+}
+.listen {
+  display: inline-flex; align-items: center; gap: 8px; border: 3px solid var(--ink); background: var(--sun); border-radius: 999px;
+  padding: 8px 18px; font: 700 1.05rem var(--f-display); box-shadow: 0 4px 0 var(--ink);
+}
+.listen:active { transform: translateY(4px); box-shadow: none; }
+h2.pick { font: 700 1.5rem var(--f-display); margin: 22px 0 12px; }
+
+.map { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
+.spot {
+  position: relative; text-align: left; display: flex; flex-direction: column; gap: 2px;
+  background: var(--card); border: 3px solid var(--c); border-radius: 22px; padding: 14px 14px 12px; min-height: 176px;
+  box-shadow: 0 6px 0 var(--c); transition: transform .12s; animation: rise .45s both; animation-delay: var(--d);
+}
+.spot:hover { transform: translateY(-3px); }
+.spot:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--c); }
+.spot-emoji { font-size: 2.6rem; line-height: 1.1; margin-bottom: 6px; }
+.spot-cat { font: 600 .72rem var(--f-display); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.spot-title { font: 700 1.15rem/1.15 var(--f-display); text-wrap: balance; }
+.spot-ref { font-size: .85rem; color: var(--muted); margin-top: auto; padding-top: 6px; }
+.mini { position: absolute; top: 12px; right: 10px; font-size: .95rem; letter-spacing: 1px; color: var(--line); }
+.mini .on { color: inherit; }
+.spot.done { background: #FFFBEA; }
+
+.extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 22px; }
+.extra {
+  display: flex; align-items: center; gap: 12px; text-align: left; background: var(--card); border: 3px solid var(--ink); border-radius: 18px;
+  padding: 14px 16px; font: 700 1.15rem var(--f-display); box-shadow: 0 5px 0 var(--ink);
+}
+.extra span { font-size: 2rem; }
+.extra small { margin-left: auto; font: 600 .95rem var(--f-display); color: var(--muted); }
+.extra:active { transform: translateY(5px); box-shadow: none; }
+.parents { margin-top: 24px; padding: 14px 16px; border-radius: 18px; background: var(--card); border: 2px dashed var(--line); display: flex; flex-direction: column; gap: 10px; }
+.parents p { margin: 0; color: var(--muted); font-size: .92rem; max-width: 70ch; }
+.voice-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.voice-row label { font: 700 1rem var(--f-display); }
+.voice-row select { min-width: 0; max-width: 100%; flex: 1 1 220px; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--ink); background: var(--paper); font-size: .95rem; }
+
+/* Écran aventure / jeu */
+.back { border: 0; background: none; padding: 4px 0; font: 600 1rem var(--f-display); color: var(--muted); margin-bottom: 6px; }
+.game-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.game-emoji {
+  width: 66px; height: 66px; flex: none; border-radius: 20px; display: grid; place-items: center;
+  font-size: 2.3rem; background: var(--card); border: 3px solid var(--c); box-shadow: 0 4px 0 var(--c);
+}
+.game-head h2 { margin: 0; font: 700 clamp(1.5rem, 5vw, 2rem)/1.1 var(--f-display); text-wrap: balance; }
+.games { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 8px; }
+.gcard {
+  position: relative; display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 16px; min-height: 170px;
+  background: var(--card); border: 3px solid var(--c); border-radius: 22px; box-shadow: 0 6px 0 var(--c);
+}
+.gcard:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--c); }
+.gcard .gnum { font: 700 .8rem var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.gcard .ge { font-size: 2.6rem; line-height: 1.1; }
+.gcard .gt { font: 700 1.3rem/1.15 var(--f-display); }
+.gcard .gk { font-size: .9rem; color: var(--muted); margin-top: auto; }
+.gcard .gs { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: var(--paper); border: 2px dashed var(--line); color: var(--muted); }
+.gcard.done .gs { background: #FFF3C7; border: 2px solid var(--sun); color: var(--ink); }
+
+.prompt { display: flex; align-items: center; gap: 12px; background: var(--card); border: 3px solid var(--c); border-radius: 20px; padding: 12px 14px; }
+.prompt p { margin: 0; font: 600 clamp(1.15rem, 3.6vw, 1.5rem)/1.3 var(--f-display); min-width: 0; text-wrap: balance; }
+.replay { background: var(--sun); }
+.dots { display: flex; gap: 8px; margin: 14px 2px; flex-wrap: wrap; }
+.dots i { width: 16px; height: 16px; border-radius: 50%; background: var(--line); }
+.dots i.done { background: var(--c); }
+.dots i.now { background: var(--card); box-shadow: inset 0 0 0 3px var(--c); }
+.play { display: flex; flex-direction: column; gap: 18px; }
+
+.visual { display: grid; place-items: center; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
+.choices.two { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.choice {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 124px; padding: 12px; text-align: center;
+  background: var(--card); border: 3px solid var(--ink); border-radius: 20px; box-shadow: 0 5px 0 var(--ink);
+}
+.choice:active { transform: translateY(5px); box-shadow: none; }
+.choice.right, .tap.got { background: var(--ok-bg); border-color: var(--ok); box-shadow: 0 5px 0 var(--ok); animation: pop .4s; }
+.choice svg { width: 92px; height: 92px; }
+.qe { font-size: 2.8rem; line-height: 1.1; }
+.qt { font: 600 1.05rem/1.2 var(--f-display); }
+.qt.big { font-size: 1.5rem; }
+.num { font: 700 3.2rem/1 var(--f-display); }
+.letter { font: 700 3.2rem/1 var(--f-display); }
+.letter small { font-size: .55em; margin-left: 6px; color: var(--muted); }
+.syl { font: 700 2.6rem/1 var(--f-display); letter-spacing: .02em; }
+.grp { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; font-size: 1.9rem; line-height: 1.1; max-width: 170px; }
+
+/* Jours */
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.slot { aspect-ratio: 3 / 4; max-width: 100%; border: 3px dashed var(--line); border-radius: 14px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; }
+.slot b { font: 700 1.1rem var(--f-display); color: var(--muted); }
+.slot span { font-size: clamp(1.1rem, 4.5vw, 2rem); line-height: 1; }
+.slot.now { border-color: var(--coral); border-style: solid; animation: glow 1.2s ease-in-out infinite; }
+.slot.filled { border: 3px solid var(--sun); background: #FFF6D6; animation: pop .4s; }
+.slot.filled b { color: var(--ink); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+.card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; min-height: 112px; background: var(--card); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink); }
+.card .ce { font-size: 2.3rem; line-height: 1.1; }
+.card .ct { font: 600 .85rem/1.15 var(--f-display); text-align: center; }
+.card.used { visibility: hidden; }
+
+/* Arche */
+.field { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding: 16px; border-radius: 22px; background: #E7F5DF; border: 3px solid var(--grass); }
+.animal { width: 76px; height: 76px; font-size: 2.8rem; border-radius: 50%; border: 3px solid transparent; background: var(--card); box-shadow: 0 4px 0 #BFE0B2; display: grid; place-items: center; }
+.animal.gone { visibility: hidden; }
+.ark { position: relative; max-width: 560px; width: 100%; margin: 0 auto; }
+.deck { min-height: 72px; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 4px; padding: 0 40px; font-size: 2.4rem; line-height: 1; }
+.deck span { animation: drop .45s both; }
+.hull {
+  height: 82px; background: var(--wood); color: #FFF4E2; clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+  display: grid; place-items: center; font: 700 1.4rem var(--f-display); letter-spacing: .04em;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 2px, transparent 2px 20px);
+}
+.sea { height: 18px; border-radius: 0 0 14px 14px; background: repeating-radial-gradient(circle at 10px -4px, var(--sky-2) 0 10px, #7CC0EE 10px 12px); background-size: 24px 18px; }
+.rain { position: relative; height: 140px; overflow: hidden; border-radius: 22px; background: linear-gradient(#93A9C4, #C9D9EA); border: 3px solid #93A9C4; }
+.rain i { position: absolute; top: -20px; font-style: normal; font-size: 1.3rem; animation: fall 1.4s linear infinite; }
+
+/* Arc-en-ciel */
+.rainbow { width: 100%; max-width: 520px; margin: 0 auto; display: block; }
+.band { fill: none; stroke: #E9E4D6; stroke-width: 15; stroke-dasharray: 2 7; stroke-linecap: round; transition: stroke .3s; }
+.band.on { stroke-dasharray: none; stroke-linecap: butt; }
+.pots { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.pot { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 4px; }
+.pot i { width: 74px; height: 74px; border-radius: 50%; background: var(--pc); border: 4px solid var(--ink); box-shadow: 0 4px 0 var(--ink); display: block; }
+.pot b { font: 600 1rem var(--f-display); }
+.pot:active i { transform: translateY(4px); box-shadow: none; }
+.pot.used { opacity: .25; pointer-events: none; }
+.swatch { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.swatch i { width: 130px; height: 130px; border-radius: 50%; border: 5px solid var(--ink); display: block; box-shadow: 0 6px 0 var(--ink); }
+.swatch b { font: 700 2rem var(--f-display); }
+
+/* Compter */
+.herd { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 640px; padding: 14px; border-radius: 22px; background: var(--card); border: 3px dashed var(--line); }
+.critter { position: relative; width: 64px; height: 64px; font-size: 2.4rem; border: 0; background: none; border-radius: 50%; }
+.critter.counted { background: #FFF3C7; }
+.critter.counted::after {
+  content: attr(data-k); position: absolute; right: -4px; top: -4px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--coral); color: #fff; font: 700 .95rem/26px var(--f-display); text-align: center;
+}
+
+/* ABC & versets */
+.abc-card { display: flex; align-items: center; gap: 18px; padding: 16px 26px; background: var(--card); border: 3px solid var(--c); border-radius: 22px; flex-wrap: wrap; justify-content: center; }
+.abc-emoji { font-size: 4rem; line-height: 1; }
+.abc-word { font: 700 clamp(2rem, 8vw, 3rem)/1 var(--f-display); }
+.gap { display: inline-block; min-width: .9em; border-bottom: 5px solid var(--coral); color: var(--coral); text-align: center; }
+.verse { background: var(--card); border: 3px solid var(--c); border-radius: 22px; padding: 18px; width: 100%; }
+.vtext { margin: 0; font: 600 clamp(1.3rem, 4.5vw, 1.8rem)/1.35 var(--f-display); text-wrap: balance; }
+.words { display: flex; flex-wrap: wrap; gap: 10px; }
+.word { border: 3px solid var(--line); background: var(--paper); border-radius: 14px; padding: 8px 14px; font: 600 clamp(1.2rem, 4vw, 1.6rem) var(--f-display); }
+.word.next { border-color: var(--coral); animation: glow 1.1s ease-in-out infinite; }
+.word.lit { background: var(--sun); border-color: var(--sun); }
+.ref { margin: 12px 0 0; color: var(--muted); font-size: .95rem; }
+.clap { font-size: 3.4rem; text-align: center; }
+.clap.go { animation: pop .3s; }
+
+/* Brebis */
+.meadow { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 22px 16px 70px; border-radius: 24px; background: linear-gradient(#CFEBC6, #9DD38E); border: 3px solid var(--grass); }
+.hide { position: relative; height: 110px; border: 0; background: none; border-radius: 18px; }
+.hide .cover { position: absolute; inset: 0; display: grid; place-items: center; font-size: 4.2rem; transition: transform .35s; z-index: 1; }
+.hide .behind { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.4rem; opacity: 0; transition: opacity .2s; }
+.hide.looked .cover { transform: translateX(-34%) rotate(-12deg) scale(.85); }
+.hide.looked .behind { opacity: 1; }
+.hide.found .behind { font-size: 3.4rem; z-index: 2; animation: hop .6s ease-out 2; }
+.shepherd { position: absolute; left: 14px; bottom: 8px; font-size: 3rem; }
+
+/* Gentil */
+.deed { display: flex; align-items: center; gap: 16px; background: var(--card); border: 3px solid var(--c); border-radius: 22px; padding: 16px 20px; max-width: 640px; }
+.deed .qe { font-size: 3.6rem; }
+.deed p { margin: 0; font: 600 clamp(1.2rem, 4vw, 1.6rem)/1.25 var(--f-display); }
+
+/* Mémoire */
+.memo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 560px; width: 100%; margin: 0 auto; }
+.mem {
+  aspect-ratio: 1; max-width: 100%; min-width: 0; border: 3px solid var(--ink); border-radius: 16px; background: var(--c);
+  box-shadow: 0 4px 0 var(--ink); padding: 4px; display: grid; place-items: center; overflow: hidden; transition: transform .15s;
+}
+.mem .back { font: 700 2.2rem var(--f-display); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.mem .face { display: none; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+.mem.open { background: var(--card); animation: flip .3s; }
+.mem.open .back { display: none; }
+.mem.open .face { display: flex; }
+.mem.match { border-color: var(--ok); background: var(--ok-bg); box-shadow: 0 4px 0 var(--ok); }
+.mem .qe { font-size: clamp(1.6rem, 7vw, 2.6rem); }
+.mem .qt { font-size: clamp(.62rem, 2.3vw, .9rem); text-align: center; }
+.mem svg { width: 72%; height: auto; }
+
+/* Mettre dans l'ordre */
+.line { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.line.nums { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); }
+.line.words, .pool.words { display: flex; flex-wrap: wrap; gap: 8px; }
+.lslot { min-height: 96px; border: 3px dashed var(--line); border-radius: 16px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; text-align: center; }
+.lslot > b { font: 700 1rem var(--f-display); color: var(--muted); }
+.line.nums .lslot { min-height: 62px; }
+.line.words .lslot { min-height: 54px; min-width: 70px; padding: 6px 12px; }
+.line.words .lslot > b { display: none; }
+.lslot.filled { border: 3px solid var(--sun); background: #FFF6D6; animation: pop .35s; }
+.pool { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.pool.nums { grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
+.tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 96px; padding: 8px; text-align: center;
+  background: var(--card); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink);
+}
+.pool.nums .tile { min-height: 70px; }
+.pool.words .tile { min-height: 56px; padding: 6px 14px; font: 600 1.4rem var(--f-display); }
+.tile:active { transform: translateY(4px); box-shadow: none; }
+.tile.used { visibility: hidden; }
+.tile .num, .lslot .num { font-size: 2rem; }
+
+/* Chasse */
+.scatter { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 16px; border-radius: 22px; background: var(--card); border: 3px dashed var(--line); }
+.tap {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 104px; min-height: 96px; padding: 6px;
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink);
+}
+.tap .qt { font-size: .85rem; }
+.tap.got::after { content: "✓"; position: absolute; top: -10px; right: -8px; width: 28px; height: 28px; border-radius: 50%; background: var(--ok); color: #fff; font: 700 1rem/28px var(--f-display); text-align: center; }
+
+/* Prières & diplôme */
+.prayers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.prayer { background: var(--card); border: 3px solid var(--c); border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.prayer h3 { margin: 0; font: 700 1.3rem var(--f-display); display: flex; align-items: center; gap: 10px; }
+.prayer p { margin: 0; }
+.prayer .amen { font-weight: 700; }
+.prayer .listen { align-self: flex-start; margin-top: auto; }
+.tip { background: #FFF6D6; border-radius: 16px; padding: 12px 16px; max-width: 70ch; }
+.diploma { max-width: 640px; margin: 0 auto; text-align: center; background: var(--card); border: 4px double var(--wood); outline: 10px solid #FFF3C7; outline-offset: -18px; border-radius: 10px; padding: 36px 26px; }
+.diploma h2 { font: 700 2.6rem var(--f-display); margin: 6px 0; color: var(--coral); }
+.diploma .name { width: 100%; max-width: 380px; border: 0; border-bottom: 3px dotted var(--ink); background: transparent; font: 700 1.8rem var(--f-display); text-align: center; padding: 6px; margin: 8px 0 12px; color: var(--ink); }
+.diploma .meta { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 24px; color: var(--muted); font-size: .95rem; text-align: left; }
+.starrow { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px 0; }
+.starrow span { width: 60px; min-height: 64px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.7rem; background: var(--card); border: 3px dashed var(--line); line-height: 1.1; }
+.starrow span small { font: 700 .75rem var(--f-display); color: var(--muted); }
+.starrow span.on { border: 3px solid var(--sun); background: #FFF3C7; }
+
+/* Retours */
+.toast {
+  position: fixed; left: 50%; top: 32%; transform: translate(-50%, -50%); z-index: 30; pointer-events: none;
+  font: 700 clamp(2.4rem, 10vw, 4rem) var(--f-display); color: var(--coral);
+  text-shadow: 0 4px 0 var(--card), 0 -2px 0 var(--card), 3px 0 0 var(--card), -3px 0 0 var(--card);
+  animation: toast 1s ease-out both;
+}
+.shake { animation: shake .4s; }
+.overlay {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(34, 50, 90, .5);
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.reward { background: var(--paper); border: 4px solid var(--sun); border-radius: 28px; padding: 26px 22px; max-width: 460px; width: 100%; text-align: center; animation: pop .45s; }
+.big-star { font-size: 5rem; line-height: 1; animation: spin 1.2s ease-out; }
+.reward h2 { font: 700 2.4rem var(--f-display); margin: 6px 0; }
+.reward p { margin: 6px 0; font-size: 1.1rem; }
+.reward .small { color: var(--muted); font-size: .95rem; }
+.row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.btn { border: 3px solid var(--ink); background: var(--card); border-radius: 999px; padding: 10px 20px; font: 700 1.05rem var(--f-display); box-shadow: 0 4px 0 var(--ink); }
+.btn.primary { background: var(--sun); }
+.btn:active { transform: translateY(4px); box-shadow: none; }
+.confetti { position: fixed; top: -40px; z-index: 25; pointer-events: none; font-size: 1.6rem; animation: confetti var(--t) linear forwards; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes bob { 50% { transform: translateY(-8px) rotate(6deg); } }
+@keyframes pop { 0% { transform: scale(.8); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes flip { from { transform: rotateY(90deg); } }
+@keyframes glow { 50% { box-shadow: 0 0 0 6px rgba(255, 122, 89, .25); } }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@keyframes drop { from { transform: translateY(-40px); opacity: 0; } }
+@keyframes fall { to { transform: translateY(180px); } }
+@keyframes hop { 40% { transform: translateY(-26px); } }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -70%); } }
+@keyframes spin { from { transform: rotate(-200deg) scale(.2); } }
+@keyframes confetti { to { transform: translate(var(--x), 110vh) rotate(var(--r)); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .confetti { display: none; }
+}
+@media (max-width: 520px) {
+  .sun { width: 84px; height: 84px; font-size: 2.2rem; }
+  .map { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .spot { min-height: 164px; padding: 12px 10px 10px; }
+  .spot-title { font-size: 1.02rem; }
+  .bar .brand { font-size: 1rem; }
+  .choice { min-height: 108px; }
+  .hide { height: 92px; }
+  .hide .cover { font-size: 3.4rem; }
+  .tap { width: 92px; }
+  .memo { gap: 7px; }
+}
+</style>
+
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <button class="round-btn" id="homeBtn" aria-label="Retour aux aventures" hidden>🏠</button>
+    <span class="brand">Elohîm m'aime !</span>
+    <span class="chip" aria-label="Étoiles gagnées"><span aria-hidden="true">⭐</span><span id="starCount">0 / 30</span></span>
+    <button class="round-btn" id="soundBtn" aria-pressed="true" aria-label="Son et voix">🔊</button>
+  </div>
+</header>
+<main class="wrap" id="stage"></main>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const KEY = 'elohim-maime-jeu-v1';
+  const stage = $('#stage'), homeBtn = $('#homeBtn'), soundBtn = $('#soundBtn'), starCount = $('#starCount');
+  const NUM = ['zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix'];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick = (a, n) => shuffle(a).slice(0, n);
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const em = (e, t) => `<span class="qe" aria-hidden="true">${e}</span>${t ? `<span class="qt">${t}</span>` : ''}`;
+
+  /* ---------- Mémoire (dans ce navigateur seulement) ---------- */
+  let state = { stars: {}, name: '', sound: true, voice: '' };
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = Object.assign(state, s); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  /* ---------- Voix douce ----------
+     Le jeu utilise les voix installées sur l'appareil. On choisit en priorité les voix
+     "naturelles" (Microsoft Edge : Denise, Eloise, Vivienne… ; Chrome : Google français),
+     qui sont bien plus fluides que les anciennes voix système. */
+  const hasTTS = 'speechSynthesis' in window;
+  let voices = [], voice = null, lastSpeak = '';
+  function voiceScore(v) {
+    const n = v.name || '';
+    let s = 0;
+    if (/natural|neural|online|premium|enhanced/i.test(n)) s += 60;
+    if (/google/i.test(n)) s += 35;
+    if (/denise|eloise|vivienne|brigitte|coralie|jacqueline|yvette|celeste|amélie|amelie|audrey|aurélie|aurelie|marie|léa|lea|chantal|sylvie/i.test(n)) s += 15;
+    if (/hortense|julie|paul|thomas|nicolas|daniel/i.test(n) && !/natural|online/i.test(n)) s -= 10;
+    if (/^fr[-_]FR/i.test(v.lang)) s += 6; else if (/^fr[-_]CA/i.test(v.lang)) s += 3;
+    if (v.localService === false) s += 4;
+    return s;
+  }
+  function loadVoices() {
+    try {
+      voices = speechSynthesis.getVoices().filter(v => /^fr/i.test(v.lang)).sort((a, b) => voiceScore(b) - voiceScore(a));
+      voice = voices.find(v => v.name === state.voice) || voices[0] || null;
+      const sel = $('#voiceSel'); if (sel) fillVoiceSelect(sel);
+    } catch (e) {}
+  }
+  if (hasTTS) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} setTimeout(loadVoices, 600); }
+  const isNatural = v => v && (/natural|neural|online|google|premium|enhanced/i.test(v.name));
+  function clean(t) {
+    return t.replace(/\(le\)/g, '').replace(/[«»"]/g, '').replace(/…/g, ', ').replace(/\s+-\s+/g, ', ')
+      .replace(/(\d+):(\d+)/g, '$1, verset $2').replace(/\s+/g, ' ').trim();
+  }
+  function say(t) {
+    if (!state.sound || !t || !hasTTS) return;
+    try {
+      speechSynthesis.cancel();
+      // Phrases courtes une par une : la voix reste fluide et ne coupe pas en plein milieu.
+      const parts = clean(t).match(/[^.!?]+[.!?]*/g) || [t];
+      const nat = isNatural(voice);
+      parts.forEach(p => {
+        p = p.trim(); if (!p) return;
+        const u = new SpeechSynthesisUtterance(p);
+        u.lang = voice ? voice.lang : 'fr-FR'; if (voice) u.voice = voice;
+        u.rate = nat ? 0.92 : 0.85;   // calme, sans traîner
+        u.pitch = nat ? 1.0 : 1.05;   // hauteur naturelle : moins "robot"
+        u.volume = 0.95;
+        speechSynthesis.speak(u);
+      });
+    } catch (e) {}
+  }
+  function fillVoiceSelect(sel) {
+    if (!voices.length) { sel.innerHTML = '<option>Voix de l’appareil</option>'; sel.disabled = true; return; }
+    sel.disabled = false;
+    sel.innerHTML = voices.map(v => `<option value="${v.name.replace(/"/g, '&quot;')}">${v.name.replace(/^Microsoft\s+/, '').replace(/\s*-\s*French.*$/i, '')}${isNatural(v) ? ' ✨' : ''}</option>`).join('');
+    sel.value = voice ? voice.name : '';
+  }
+
+  let ac = null;
+  function tone(freqs, dur = 0.14, type = 'sine', gap = 0.09, vol = 0.14) {
+    if (!state.sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const t0 = ac.currentTime + 0.01;
+      freqs.forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain(), s = t0 + i * gap;
+        o.type = type; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, s);
+        g.gain.exponentialRampToValueAtTime(vol, s + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+        o.connect(g); g.connect(ac.destination); o.start(s); o.stop(s + dur + 0.03);
+      });
+    } catch (e) {}
+  }
+  const sfx = {
+    ok: () => tone([523, 659, 784], 0.2, 'triangle'),
+    win: () => tone([523, 659, 784, 1047, 784, 1047], 0.25, 'triangle', 0.13),
+    no: () => tone([300, 240], 0.2, 'sine', 0.12, 0.09),
+    pop: () => tone([880, 1175], 0.09, 'sine', 0.05, 0.1),
+    clap: () => tone([1400, 900], 0.05, 'square', 0.02, 0.05)
+  };
+  function setSound(on) {
+    state.sound = on; save();
+    soundBtn.setAttribute('aria-pressed', String(on));
+    soundBtn.textContent = on ? '🔊' : '🔇';
+    if (!on && hasTTS) { try { speechSynthesis.cancel(); } catch (e) {} }
+  }
+  soundBtn.onclick = () => { setSound(!state.sound); if (state.sound) say('Le son est allumé !'); };
+  setSound(state.sound);
+
+  /* ---------- Outils de jeu ---------- */
+  let token = 0;
+  const later = (fn, ms) => { const t = token; setTimeout(() => { if (t === token) fn(); }, ms); };
+  function setPrompt(text, spoken) { const p = $('#promptText'); if (p) p.textContent = text; lastSpeak = spoken || text; say(lastSpeak); }
+  function setDots(i, n) { const d = $('#dots'); if (d) d.innerHTML = Array.from({ length: n }, (_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join(''); }
+  function toast(word) {
+    const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('aria-hidden', 'true'); t.textContent = word;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 1100);
+  }
+  const PRAISE = ['Bravo !', 'Super !', 'Très bien !', 'Génial !', 'Oui !'];
+  function praise(extra) { const w = pick(PRAISE, 1)[0]; toast(w); sfx.ok(); say(w + (extra ? ' ' + extra : '')); }
+  function shake(el) { if (!el) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+  function oops(el, msg) { sfx.no(); shake(el); say(msg || 'Essaie encore !'); }
+  function burst() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const icons = ['⭐', '💛', '✨', '🌈', '❤️', '🌟'];
+    for (let i = 0; i < 34; i++) {
+      const s = document.createElement('span'); s.className = 'confetti'; s.textContent = icons[i % icons.length];
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.setProperty('--x', rnd(-80, 80) + 'px'); s.style.setProperty('--r', rnd(-360, 360) + 'deg');
+      s.style.setProperty('--t', (1.8 + Math.random() * 1.4) + 's'); s.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(s); setTimeout(() => s.remove(), 4000);
+    }
+  }
+
+  /* ---------- Moteurs de jeu réutilisables ---------- */
+  // 1. Choisir la bonne réponse
+  function choiceRounds(g, play, rounds) {
+    let i = 0;
+    const go = () => {
+      if (i >= rounds.length) return finish(g);
+      const r = rounds[i]; setDots(i, rounds.length);
+      const opts = r.keepOrder ? r.options : shuffle(r.options);
+      play.innerHTML = (r.visual ? `<div class="visual">${r.visual}</div>` : '') +
+        `<div class="choices ${r.cls || ''}">${opts.map(o => `<button class="choice" data-ok="${o.ok ? 1 : 0}" aria-label="${o.label}">${o.html}</button>`).join('')}</div>`;
+      setPrompt(r.q, r.speak);
+      if (r.onRender) r.onRender(play);
+      let locked = false;
+      $$('.choice', play).forEach(b => b.onclick = () => {
+        if (locked) return;
+        if (b.dataset.ok === '1') {
+          locked = true; b.classList.add('right'); if (r.onOk) r.onOk(play);
+          praise(r.after); i++; later(go, r.after ? 3000 : 1400);
+        } else oops(b, r.wrong);
+      });
+    };
+    go();
+  }
+  // 2. Jeu de mémoire (paires identiques ou associées)
+  function memory(g, play, pairs, q) {
+    const cards = shuffle(pairs.flatMap((p, k) => [{ k, f: p.a }, { k, f: p.b || p.a }]));
+    play.innerHTML = `<div class="memo">${cards.map((c, i) => `<button class="mem" data-k="${c.k}" data-i="${i}" aria-label="Carte cachée"><span class="back" aria-hidden="true">?</span><span class="face">${c.f.html}</span></button>`).join('')}</div>`;
+    setPrompt(q || 'Retourne deux cartes. Trouve les paires !');
+    setDots(0, pairs.length);
+    let open = [], found = 0, lock = false;
+    $$('.mem', play).forEach(b => b.onclick = () => {
+      if (lock || b.classList.contains('open')) return;
+      const c = cards[+b.dataset.i];
+      b.classList.add('open'); b.setAttribute('aria-label', c.f.label); sfx.pop(); open.push(b);
+      if (open.length === 1) { say(c.f.label); return; }
+      lock = true; const [x, y] = open; open = [];
+      if (x.dataset.k === y.dataset.k) {
+        found++; x.classList.add('match'); y.classList.add('match'); setDots(found, pairs.length);
+        const p = pairs[+x.dataset.k];
+        if (found === pairs.length) { praise(p.say); later(() => finish(g), 2800); }
+        else { sfx.ok(); say(p.say || 'Une paire !'); lock = false; }
+      } else {
+        say(c.f.label);
+        later(() => { [x, y].forEach(e => { e.classList.remove('open'); e.setAttribute('aria-label', 'Carte cachée'); }); lock = false; }, 1200);
+      }
+    });
+  }
+  // 3. Mettre dans l'ordre
+  function sequence(g, play, rounds) {
+    let ri = 0;
+    const go = () => {
+      if (ri >= rounds.length) return finish(g);
+      const r = rounds[ri], n = r.items.length, cls = r.cls || '';
+      play.innerHTML = `<div class="line ${cls}" id="line">${r.items.map((_, i) => `<div class="lslot"><b>${i + 1}</b></div>`).join('')}</div>
+        <div class="pool ${cls}">${shuffle(r.items.map((it, i) => Object.assign({ i }, it))).map(it => `<button class="tile" data-i="${it.i}" aria-label="${it.label}">${it.html}</button>`).join('')}</div>`;
+      setPrompt(r.q, r.speak);
+      if (rounds.length > 1) setDots(ri, rounds.length); else setDots(0, n);
+      let k = 0, done = false;
+      $$('.tile', play).forEach(b => b.onclick = () => {
+        if (done) return;
+        if (+b.dataset.i !== k) return oops(b, typeof r.wrong === 'function' ? r.wrong(k) : (r.wrong || 'Pas encore ! Qu’est-ce qui vient avant ?'));
+        const it = r.items[k];
+        b.classList.add('used');
+        const slot = $('#line').children[k]; slot.innerHTML = b.innerHTML; slot.classList.add('filled');
+        sfx.pop(); say(it.say || it.label); k++;
+        if (rounds.length === 1) setDots(k, n);
+        if (k === n) { done = true; ri++; later(() => praise(r.after), 1200); later(go, r.after ? 5200 : 2600); }
+        else if (r.next) later(() => { if (!done) setPrompt(r.next); }, 1900);
+      });
+    };
+    go();
+  }
+  // 4. Chasse : toucher toutes les bonnes images
+  function tapAll(g, play, rounds) {
+    let ri = 0;
+    const go = () => {
+      if (ri >= rounds.length) return finish(g);
+      const r = rounds[ri]; setDots(ri, rounds.length);
+      const items = shuffle(r.items), need = items.filter(x => x.ok).length; let got = 0;
+      play.innerHTML = `<div class="scatter">${items.map((it, i) => `<button class="tap" data-i="${i}" aria-label="${it.label}">${it.html}</button>`).join('')}</div>`;
+      setPrompt(r.q, r.speak);
+      $$('.tap', play).forEach(b => b.onclick = () => {
+        const it = items[+b.dataset.i];
+        if (got >= need || b.classList.contains('got')) return;
+        if (!it.ok) return oops(b, r.wrong);
+        b.classList.add('got'); got++; sfx.pop();
+        say(r.count ? NUM[got] : it.label);
+        if (got === need) { ri++; later(() => praise(r.after), 700); later(go, 3800); }
+      });
+    };
+    go();
+  }
+
+  /* ---------- Contenus (tirés du livre) ---------- */
+  const DAYS = [
+    { n: 1, e: '💡', t: 'la lumière', s: 'Elohîm crée la lumière. Où est la lumière ?' },
+    { n: 2, e: '🌊', t: 'le ciel et la mer', s: 'Elohîm crée le ciel et la mer. Où sont le ciel et la mer ?' },
+    { n: 3, e: '🌳', t: 'la terre et les plantes', s: 'Elohîm crée la terre et les plantes. Où sont les plantes ?' },
+    { n: 4, e: '☀️🌙', t: 'le soleil, la lune, les étoiles', s: 'Elohîm crée le soleil, la lune et les étoiles. Où est le soleil ?' },
+    { n: 5, e: '🐟🐦', t: 'les poissons et les oiseaux', s: 'Elohîm crée les poissons et les oiseaux. Où sont les poissons ?' },
+    { n: 6, e: '🦁👧', t: 'les animaux et les hommes', s: 'Elohîm crée les animaux et les hommes. Où sont les animaux ?' },
+    { n: 7, e: '😴', t: 'Elohîm se repose', s: 'Elohîm se repose. Trouve le dodo !' }
+  ];
+  const CREA = [['💡', 'la lumière'], ['🌊', 'la mer'], ['🌳', 'les arbres'], ['☀️', 'le soleil'], ['🌙', 'la lune'], ['⭐', 'les étoiles'], ['🐟', 'les poissons'], ['🐦', 'les oiseaux'], ['🦁', 'les animaux']];
+  const SHAPES = [
+    { k: 'cercle', n: 'le cercle', w: 'comme le soleil', c: '#F5B400', o: ['☀️', 'le soleil'] },
+    { k: 'triangle', n: 'le triangle', w: "comme le toit de l'étable", c: '#FF7A59', o: ['🏠', "le toit de l'étable"] },
+    { k: 'carre', n: 'le carré', w: "comme la fenêtre de l'arche", c: '#3E95D8', o: ['🪟', "la fenêtre de l'arche"] },
+    { k: 'etoile', n: "l'étoile", w: "comme l'étoile de Bethléem", c: '#E0A800', o: ['🌟', "l'étoile de Bethléem"] },
+    { k: 'coeur', n: 'le cœur', w: 'parce que Elohîm nous aime', c: '#E8476A', o: ['💝', "l'amour d'Elohîm"] },
+    { k: 'rectangle', n: 'le rectangle', w: 'comme ma Bible', c: '#4DAA57', o: ['📖', 'ma Bible'] }
+  ];
+  function shapeSVG(k, col) {
+    const p = {
+      cercle: '<circle cx="50" cy="50" r="40"/>',
+      triangle: '<polygon points="50,10 92,88 8,88"/>',
+      carre: '<rect x="14" y="14" width="72" height="72" rx="4"/>',
+      rectangle: '<rect x="4" y="27" width="92" height="48" rx="4"/>',
+      etoile: '<polygon points="50,5 61,38 96,38 68,58 79,93 50,72 21,93 32,58 4,38 39,38"/>',
+      coeur: '<path d="M50 90 C20 68 5 52 5 33 C5 18 16 8 30 8 C40 8 47 14 50 22 C53 14 60 8 70 8 C84 8 95 18 95 33 C95 52 80 68 50 90Z"/>'
+    }[k];
+    return `<svg viewBox="0 0 100 100" aria-hidden="true" fill="${col}" stroke="#22325A" stroke-width="3" stroke-linejoin="round">${p}</svg>`;
+  }
+  const ABC = [['A', 'Agneau', '🐑'], ['B', 'Bible', '📖'], ['C', 'Chameau', '🐫'], ['D', 'Daniel', '🦁'], ['E', 'Étoile', '⭐'],
+    ['F', 'Famille', '👨‍👩‍👧'], ['G', 'Goliath', '🛡️'], ['I', 'Isaac', '👦'], ['J', 'Jésus', '✝️'], ['K', 'Kangourou', '🦘'],
+    ['L', 'Lampe', '🪔'], ['M', 'Moïse', '🌊'], ['N', 'Noé', '🚢'], ['O', 'Olivier', '🫒'], ['P', 'Prière', '🙏'],
+    ['R', 'Roi David', '👑'], ['S', 'Soleil', '☀️'], ['T', 'Temple', '🏛️'], ['U', 'Univers', '🌌'], ['V', 'Vigne', '🍇'],
+    ['X', 'Xylophone', '🎵'], ['Y', 'Yeux', '👀'], ['Z', 'Zachée', '🌳']];
+  const SYL = ['ma', 'pa', 'la', 'sa', 'mi', 'pi', 'li', 'si', 'mo', 'po', 'lo', 'so'];
+  const READ = [['Pa-pa', 'Papa'], ['Ma-man', 'Maman'], ['Jé-sus', 'Jésus'], ['ar-che', 'arche'], ['pal-mier', 'palmier']];
+  const ANIM = [['🦁', 'lions', 'lion'], ['🐑', 'brebis', 'brebis'], ['🐟', 'poissons', 'poisson'], ['🐫', 'chameaux', 'chameau'], ['🐦', 'oiseaux', 'oiseau'], ['🐘', 'éléphants', 'éléphant']];
+  const PAIRS_ANIM = [['🦁', 'deux lions', 'un lion'], ['🐘', 'deux éléphants', 'un éléphant'], ['🦒', 'deux girafes', 'une girafe'], ['🐑', 'deux brebis', 'une brebis'], ['🐫', 'deux chameaux', 'un chameau'], ['🐓', 'deux coqs', 'un coq'], ['🐢', 'deux tortues', 'une tortue'], ['🐰', 'deux lapins', 'un lapin']];
+  const BOOK_COLORS = [['Rouge', '#E53935', '🍎', 'la pomme'], ['Orange', '#FB8C00', '🥭', 'la mangue'], ['Jaune', '#FDD835', '☀️', 'le soleil'], ['Vert', '#43A047', '🍃', 'les feuilles'], ['Bleu', '#1E88E5', '🌊', 'la mer'], ['Violet', '#8E24AA', '🍇', 'le raisin']];
+  const HUNT = {
+    rouge: [['🍎', 'une pomme'], ['🍓', 'une fraise'], ['🌹', 'une rose'], ['🚒', 'un camion de pompiers'], ['🍅', 'une tomate'], ['❤️', 'un cœur']],
+    vert: [['🍃', 'des feuilles'], ['🥦', 'un brocoli'], ['🐸', 'une grenouille'], ['🌲', 'un sapin'], ['🍏', 'une pomme verte'], ['🥒', 'un concombre']],
+    jaune: [['☀️', 'le soleil'], ['🍋', 'un citron'], ['🌻', 'un tournesol'], ['🐤', 'un poussin'], ['🍌', 'une banane'], ['⭐', 'une étoile']],
+    bleu: [['💧', "une goutte d'eau"], ['🐳', 'une baleine'], ['🫐', 'des myrtilles'], ['🌊', 'la mer'], ['🔵', 'un rond bleu'], ['🧊', 'un glaçon']]
+  };
+  const QUIZ = [
+    { q: "Comment les animaux entrent-ils dans l'arche ?", o: [['🦒🦒', 'deux par deux', 1], ['🦒', 'un par un'], ['🦒🦒🦒🦒', 'quatre par quatre']], a: 'Deux par deux !' },
+    { q: 'Où Jésus est-il né ?', o: [['🐂', 'dans une étable', 1], ['🏰', 'dans un château'], ['🏖️', 'sur la plage']], a: 'Dans une étable, à Bethléem !' },
+    { q: "Quels animaux étaient dans l'étable ?", o: [['🐂🐴', "le bœuf et l'âne", 1], ['🦁🐘', "le lion et l'éléphant"], ['🐟🐸', 'le poisson et la grenouille']], a: "Le bœuf et l'âne !" },
+    { q: 'Qui est le plus grand, David ou Goliath ?', o: [['<span style="font-size:1.5em">🧔</span>', 'Goliath', 1], ['<span style="font-size:.75em">🧒</span>', 'David']], a: 'Goliath est un géant très, très grand !' },
+    { q: 'Qui a aidé David ?', o: [['✨', 'Elohîm', 1], ['🛡️', 'Goliath'], ['🐫', 'un chameau']], a: 'Elohîm a aidé David !' },
+    { q: 'Combien de fois par jour Daniel priait-il ?', o: [['<span class="num">3</span>', 'trois fois', 1], ['<span class="num">1</span>', 'une fois'], ['<span class="num">10</span>', 'dix fois']], a: 'Trois fois par jour !' },
+    { q: 'Qui a fermé la gueule des lions ?', o: [['👼', "l'ange d'Elohîm", 1], ['👑', 'le roi'], ['🐦', 'un oiseau']], a: 'Elohîm a envoyé son ange !' },
+    { q: 'Quel animal a avalé Jonas ?', o: [['🐋', 'un grand poisson', 1], ['🦁', 'un lion'], ['🐫', 'un chameau']], a: 'Un grand poisson !' },
+    { q: 'Où Jonas a-t-il prié ?', o: [['🐋', 'dans le poisson', 1], ['🌳', 'dans un arbre'], ['🏰', 'dans un château']], a: 'Dans le ventre du grand poisson !' },
+    { q: 'Quels animaux portaient les rois mages ?', o: [['🐫', 'des chameaux', 1], ['🐟', 'des poissons'], ['🐓', 'des coqs']], a: 'Des chameaux !' },
+    { q: 'Que dit Jésus aux disciples ?', o: [['🤗', '« Laissez les enfants venir à moi ! »', 1], ['🚫', '« Partez ! »']], a: "Laissez les enfants venir à moi ! Jésus t'aime, toi aussi !" }
+  ];
+  const LINKS = [
+    ['🧔', 'Noé', '🌈', "l'arc-en-ciel", "Noé et l'arc-en-ciel !"],
+    ['🧑', 'Jonas', '🐋', 'le grand poisson', 'Jonas et le grand poisson !'],
+    ['🧒', 'David', '🪨', 'la petite pierre', 'David et sa petite pierre !'],
+    ['🧑‍🌾', 'Le berger', '🐑', 'la brebis', 'Le bon berger et sa brebis !'],
+    ['🙏', 'Daniel', '🦁', 'les lions', 'Daniel et les lions !'],
+    ['👶', 'Jésus', '⭐', "l'étoile", "Bébé Jésus et l'étoile de Bethléem !"]
+  ];
+  const TRUE_FALSE = [
+    ['🐋', 'Jonas a été avalé par un grand poisson.', 1, 'Oui, un grand poisson a avalé Jonas.'],
+    ['✈️', 'Noé a construit un avion.', 0, 'Non ! Noé a construit un grand bateau : l’arche.'],
+    ['😨', 'David avait très peur de Goliath.', 0, 'Non ! David n’a pas peur : il a confiance en Elohîm.'],
+    ['🙏', 'Daniel priait trois fois par jour.', 1, 'Oui, trois fois par jour !'],
+    ['🐂', 'Jésus est né dans une étable.', 1, 'Oui, à Bethléem, dans une étable.'],
+    ['🦁', 'Les lions ont mangé Daniel.', 0, 'Non ! L’ange a fermé la gueule des lions.'],
+    ['🌧️', 'Il a plu pendant quarante jours.', 1, 'Oui, quarante jours !'],
+    ['🚫', 'Jésus a dit aux enfants : partez !', 0, 'Non ! Jésus a dit : laissez les enfants venir à moi.'],
+    ['🐑', 'Le berger avait cent brebis.', 1, 'Oui, cent brebis !'],
+    ['🐜', 'Goliath était tout petit.', 0, 'Non ! Goliath était un géant très, très grand.']
+  ];
+  const DEEDS = [
+    ['🍪', 'Je partage mon goûter avec mon ami.', 1, 'Partager, ça fait plaisir à Elohîm.'],
+    ['🙏', 'Je dis merci.', 1, 'Je dis merci à Elohîm et aux autres.'],
+    ['😠', 'Je pousse mon copain.', 0, 'Jésus nous apprend à être doux avec les autres.'],
+    ['🧹', "J'aide papa et maman.", 1, 'Aider, ça fait plaisir à Elohîm.'],
+    ['🤥', 'Je dis un mensonge.', 0, "Je dis la vérité, même quand c'est difficile."],
+    ['🤗', 'Je pardonne à mon ami.', 1, 'Je pardonne comme Jésus me pardonne.'],
+    ['🧸', 'Je prends le jouet de ma sœur sans demander.', 0, 'Je demande gentiment, et je partage.'],
+    ['💬', 'Je dis la vérité.', 1, 'Elohîm aime la vérité.']
+  ];
+  const SITU = [
+    ['😢', 'Ton ami est triste.', ['🤗', 'Je le console'], ['😝', 'Je me moque de lui'], 'Tu le consoles. C’est gentil !'],
+    ['🧺', 'Maman porte un gros panier.', ['🤝', 'Je l’aide'], ['📺', 'Je regarde la télé'], 'Tu aides maman. Bravo !'],
+    ['🍪', 'Tu as deux biscuits. Ta sœur n’en a pas.', ['🤲', 'Je lui en donne un'], ['😋', 'Je mange tout'], 'Tu partages ton goûter !'],
+    ['🤕', 'Ton copain t’a fait mal sans faire exprès.', ['🤝', 'Je lui pardonne'], ['👊', 'Je le tape'], 'Tu pardonnes, comme Jésus te pardonne.'],
+    ['🎁', 'Mamie te donne un cadeau.', ['🙏', 'Je dis merci'], ['🙄', 'Je ne dis rien'], 'Tu dis merci !'],
+    ['🥛', 'Tu as cassé un verre.', ['💬', 'Je dis la vérité'], ['🙈', 'Je me cache'], 'Tu dis la vérité, même quand c’est difficile.'],
+    ['🍲', 'C’est l’heure du repas.', ['🙏', 'Je dis merci à Elohîm'], ['😤', 'Je boude'], 'Tu dis merci à Elohîm pour le bon repas.']
+  ];
+  const KIND = [['🤗', 'consoler'], ['🙏', 'dire merci'], ['🍪', 'partager'], ['🧹', 'aider'], ['💬', 'dire la vérité'], ['🤝', 'pardonner']];
+  const UNKIND = [['😠', 'pousser'], ['🤥', 'mentir'], ['🧸', 'prendre sans demander'], ['😝', 'se moquer'], ['👊', 'taper'], ['😤', 'bouder']];
+  const VERSES = [
+    ["Nous l'aimons, parce qu'il nous a aimés le premier.", '1 Jean 4:19'],
+    ['Au commencement Elohîm créa les cieux et la Terre.', 'Genèse 1:1'],
+    ['Tu aimeras ton prochain comme toi-même.', 'Matthieu 22:39'],
+    ['Laissez les enfants venir à moi.', 'Matthieu 19:14']
+  ];
+  const GAPS = [
+    ['Au commencement Elohîm créa les cieux et la', 'Terre', '.', ['Terre', 'maison', 'pluie'], 'Genèse 1:1'],
+    ['Tu aimeras ton', 'prochain', 'comme toi-même.', ['prochain', 'gâteau', 'chapeau'], 'Matthieu 22:39'],
+    ["Nous l'aimons, parce qu'il nous a", 'aimés', 'le premier.', ['aimés', 'oubliés', 'cachés'], '1 Jean 4:19'],
+    ['Laissez les', 'enfants', 'venir à moi.', ['enfants', 'lions', 'poissons'], 'Matthieu 19:14']
+  ];
+  const PRAYERS = [
+    ['Prière du matin', '🌅', ['Merci Seigneur pour cette nouvelle journée.', 'Garde-moi, garde ma famille.', "Aide-moi à être gentil(le) aujourd'hui."]],
+    ['Prière du repas', '🍲', ['Merci Seigneur pour ce bon repas.', "Bénis les mains qui l'ont préparé,", 'et donne à manger à ceux qui ont faim.']],
+    ['Prière du soir', '🌙', ['Merci Jésus pour cette journée.', "Pardonne-moi si j'ai fait des bêtises.", 'Veille sur moi pendant que je dors.']]
+  ];
+  const storyRound = (q, items, after) => ({ q, items: items.map(([e, t, s]) => ({ html: em(e, t), label: t, say: s || t })), next: 'Et après ?', after, wrong: 'Pas encore ! Qu’est-ce qui arrive avant ?' });
+  const yesNo = (good) => [
+    { html: em('✅', 'Vrai'), ok: !!good, label: 'Vrai' },
+    { html: em('❌', 'Pas vrai'), ok: !good, label: 'Pas vrai' }
+  ];
+
+  /* ---------- Les 10 aventures, 3 jeux chacune ---------- */
+  const ADV = [
+    {
+      id: 'jours', emoji: '🌍', title: 'Les 7 jours', cat: 'Au commencement', ref: 'Genèse 1', color: '#F5B400',
+      games: [
+        {
+          emoji: '🗓️', title: 'Range les 7 jours', kind: 'Dans l’ordre',
+          lesson: 'Elohîm a tout créé en 7 jours. Et cela était très bon !',
+          run(play, g) {
+            play.innerHTML = `<div class="days">${DAYS.map(d => `<div class="slot" id="slot${d.n}"><b>${d.n}</b><span></span></div>`).join('')}</div>
+              <div class="cards">${shuffle(DAYS).map(d => `<button class="card" data-n="${d.n}" aria-label="${d.t}"><span class="ce" aria-hidden="true">${d.e}</span><span class="ct">${cap(d.t)}</span></button>`).join('')}</div>`;
+            let step = 0, locked = false;
+            const ask = () => { const d = DAYS[step]; setDots(step, 7); $('#slot' + d.n).classList.add('now'); setPrompt(`Jour ${d.n} : ${d.s}`); locked = false; };
+            $$('.card', play).forEach(b => b.onclick = () => {
+              if (locked) return;
+              const d = DAYS[step];
+              if (+b.dataset.n !== d.n) return oops(b, "Ce n'est pas ça. " + d.s);
+              locked = true; b.classList.add('used');
+              const s = $('#slot' + d.n); s.classList.remove('now'); s.classList.add('filled'); s.querySelector('span').textContent = d.e;
+              step++;
+              if (step < 7) { praise(); later(ask, 1500); }
+              else { setDots(7, 7); sfx.ok(); setPrompt("« Elohîm vit tout ce qu'il avait fait, et voici cela était très bon. » Genèse 1:31"); later(() => finish(g), 6000); }
+            });
+            ask();
+          }
+        },
+        {
+          emoji: '❓', title: 'Quel jour ?', kind: 'Quiz',
+          lesson: 'Le jour 5, Elohîm a créé les poissons et les oiseaux. Tu connais les 7 jours !',
+          run(play, g) {
+            choiceRounds(g, play, pick(DAYS, 5).map(d => {
+              const opts = [d.n, ...pick(DAYS.map(x => x.n).filter(n => n !== d.n), 2)];
+              return {
+                q: d.n === 7 ? 'Quel jour Elohîm se repose-t-il ?' : `Quel jour Elohîm a-t-il créé ${d.t} ?`,
+                visual: `<div class="abc-card"><span class="abc-emoji" aria-hidden="true">${d.e}</span><span class="qt big">${cap(d.t)}</span></div>`,
+                options: opts.map(n => ({ html: `<span class="qt">Jour</span><span class="num">${n}</span>`, ok: n === d.n, label: 'jour ' + n })),
+                after: `Jour ${d.n} : ${d.t} !`,
+                wrong: 'Essaie encore ! Compte sur tes doigts : 1, 2, 3, 4, 5, 6, 7.'
+              };
+            }));
+          }
+        },
+        {
+          emoji: '🃏', title: 'Les paires de la création', kind: 'Mémoire',
+          lesson: 'Elohîm a créé la lumière, la mer, les arbres, les animaux… et toi !',
+          run(play, g) { memory(g, play, pick(CREA, 6).map(([e, t]) => ({ a: { html: em(e), label: t }, say: cap(t) + ' !' }))); }
+        }
+      ]
+    },
+    {
+      id: 'arche', emoji: '🚢', title: "L'arche de Noé", cat: 'Histoire', ref: 'Genèse 6 à 9', color: '#3E95D8',
+      games: [
+        {
+          emoji: '🦒', title: 'Deux par deux', kind: 'Fais monter les animaux',
+          lesson: 'Noé obéit à Elohîm, et Elohîm prend soin de Noé et des animaux.',
+          run(play, g) {
+            const SP = [['🦁', 'les deux lions', 'lion'], ['🐘', 'les deux éléphants', 'éléphant'], ['🦒', 'les deux girafes', 'girafe'], ['🐑', 'les deux brebis', 'brebis']];
+            play.innerHTML = `<div class="field" id="field">${shuffle([0, 0, 1, 1, 2, 2, 3, 3]).map(i => `<button class="animal" data-s="${i}" aria-label="${SP[i][2]}">${SP[i][0]}</button>`).join('')}</div>
+              <div class="ark"><div class="deck" id="deck" aria-live="polite"></div><div class="hull">L'arche</div><div class="sea"></div></div>`;
+            let step = 0, got = 0;
+            const ask = () => { setDots(step, 5); setPrompt(`Fais monter ${SP[step][1]} dans l'arche !`); };
+            $$('.animal', play).forEach(b => b.onclick = () => {
+              if (step > 3 || b.classList.contains('gone')) return;
+              if (+b.dataset.s !== step) return oops(b, `Cherche ${SP[step][1]} !`);
+              b.classList.add('gone'); b.disabled = true;
+              const sp = document.createElement('span'); sp.textContent = SP[step][0]; $('#deck').appendChild(sp); sfx.pop();
+              if (++got < 2) return;
+              got = 0; step++;
+              if (step < 4) { praise('Deux par deux !'); later(ask, 1700); }
+              else { praise("Tout le monde est dans l'arche !"); later(rain, 2600); }
+            });
+            const rain = () => {
+              setDots(4, 5);
+              $('#field').outerHTML = `<div class="rain" aria-hidden="true">${Array.from({ length: 22 }, () => `<i style="left:${rnd(0, 96)}%;animation-delay:${(Math.random() * 1.4).toFixed(2)}s">💧</i>`).join('')}</div>
+                <div class="choices">${shuffle([3, 7, 40]).map(n => `<button class="choice" data-n="${n}" aria-label="${n} jours"><span class="num">${n}</span><span class="qt">jours</span></button>`).join('')}</div>`;
+              setPrompt('Il pleut, il pleut, il pleut ! Combien de jours a-t-il plu ?');
+              let done = false;
+              $$('.choice', play).forEach(b => b.onclick = () => {
+                if (done) return;
+                if (b.dataset.n !== '40') return oops(b, 'Essaie encore ! Il a plu très, très longtemps.');
+                done = true; b.classList.add('right'); praise("Quarante jours ! Mais dans l'arche, tout le monde est à l'abri.");
+                later(() => finish(g), 3800);
+              });
+            };
+            ask();
+          }
+        },
+        {
+          emoji: '🃏', title: 'Les paires d’animaux', kind: 'Mémoire',
+          lesson: 'Les animaux entrent dans l’arche deux par deux !',
+          run(play, g) { memory(g, play, pick(PAIRS_ANIM, 6).map(([e, t, one]) => ({ a: { html: em(e), label: one }, say: cap(t) + ' !' })), 'Retourne deux cartes. Trouve les animaux deux par deux !'); }
+        },
+        {
+          emoji: '📜', title: 'L’histoire de Noé', kind: 'Dans l’ordre',
+          lesson: 'Elohîm prend soin de Noé, et il tient toujours ses promesses.',
+          run(play, g) {
+            sequence(g, play, [storyRound('Remets l’histoire dans l’ordre. Qu’est-ce qui arrive en premier ?', [
+              ['🔨', 'Noé construit l’arche', 'Noé construit un grand bateau, l’arche.'],
+              ['🦒🦒', 'Les animaux entrent', 'Les animaux entrent deux par deux.'],
+              ['🌧️', 'Il pleut 40 jours', 'Il pleut pendant quarante jours.'],
+              ['🌈', 'L’arc-en-ciel', 'Elohîm met un bel arc-en-ciel dans le ciel.']
+            ], 'Tu connais l’histoire de Noé !')]);
+          }
+        }
+      ]
+    },
+    {
+      id: 'arc', emoji: '🌈', title: "L'arc-en-ciel", cat: 'Les couleurs', ref: 'La promesse · Genèse 9', color: '#8E44AD',
+      games: [
+        {
+          emoji: '🎨', title: 'Colorie l’arc-en-ciel', kind: 'Couleurs',
+          lesson: "L'arc-en-ciel a 7 couleurs. C'est la promesse d'Elohîm, et Elohîm tient toujours ses promesses !",
+          run(play, g) {
+            const C = [['rouge', '#E53935'], ['orange', '#FB8C00'], ['jaune', '#FDD835'], ['vert', '#43A047'], ['bleu', '#1E88E5'], ['indigo', '#3949AB'], ['violet', '#8E24AA']];
+            play.innerHTML = `<svg class="rainbow" viewBox="0 0 300 165" role="img" aria-label="Arc-en-ciel à colorier">${C.map((c, i) => { const r = 138 - i * 17; return `<path id="band${i}" class="band" d="M${150 - r} 158 A${r} ${r} 0 0 1 ${150 + r} 158"/>`; }).join('')}<text x="150" y="152" text-anchor="middle" font-size="26">☁️</text></svg>
+              <div class="pots">${shuffle(C.map((c, i) => [c[0], c[1], i])).map(([n, col, i]) => `<button class="pot" data-i="${i}" style="--pc:${col}" aria-label="${n}"><i></i><b>${n}</b></button>`).join('')}</div>`;
+            let step = 0;
+            const ask = () => { setDots(step, 7); setPrompt(`Touche la couleur ${C[step][0]} !`); };
+            $$('.pot', play).forEach(b => b.onclick = () => {
+              if (step > 6) return;
+              if (+b.dataset.i !== step) return oops(b.querySelector('i'), `Ça, c'est ${C[+b.dataset.i][0]}. Trouve le ${C[step][0]} !`);
+              const band = $('#band' + step); band.classList.add('on'); band.style.stroke = C[step][1]; b.classList.add('used');
+              sfx.ok(); say(cap(C[step][0]) + ' !'); step++;
+              if (step < 7) later(ask, 1200);
+              else { setDots(7, 7); later(() => { setPrompt("Après la pluie, Elohîm met un bel arc-en-ciel dans le ciel. C'est sa promesse !"); later(() => finish(g), 5200); }, 900); }
+            });
+            ask();
+          }
+        },
+        {
+          emoji: '🍎', title: 'Rouge comme la pomme', kind: 'Quiz',
+          lesson: 'Merci Elohîm pour toutes ces jolies couleurs !',
+          run(play, g) {
+            choiceRounds(g, play, shuffle(BOOK_COLORS).map(([name, col, e, obj]) => ({
+              q: `${name} comme… ?`, speak: `${name}, comme quoi ?`,
+              visual: `<div class="swatch"><i style="background:${col}"></i><b>${name}</b></div>`,
+              options: [[e, obj], ...pick(BOOK_COLORS.filter(x => x[0] !== name), 2).map(x => [x[2], x[3]])].map(([ee, oo]) => ({ html: em(ee, oo), ok: oo === obj, label: oo })),
+              after: `${name} comme ${obj} !`
+            })));
+          }
+        },
+        {
+          emoji: '🔎', title: 'La chasse aux couleurs', kind: 'Chasse',
+          lesson: 'Rouge, vert, jaune, bleu : Elohîm a créé toutes les couleurs !',
+          run(play, g) {
+            const names = Object.keys(HUNT);
+            tapAll(g, play, pick(names, 3).map(c => ({
+              q: `Touche tout ce qui est ${c} !`,
+              items: [...pick(HUNT[c], 4).map(([e, t]) => ({ html: em(e), label: t, ok: true })),
+                ...pick(names.filter(x => x !== c).flatMap(x => HUNT[x]), 5).map(([e, t]) => ({ html: em(e), label: t, ok: false }))],
+              wrong: `Ce n'est pas ${c}. Cherche encore !`,
+              after: `Tu as trouvé tout le ${c} !`
+            })));
+          }
+        }
+      ]
+    },
+    {
+      id: 'compter', emoji: '🔢', title: 'Je compte', cat: 'Compter', ref: 'De 1 à 10', color: '#FF7A59',
+      games: [
+        {
+          emoji: '🦁', title: 'Compte les animaux', kind: 'Combien ?',
+          lesson: "Tu sais compter les animaux de l'arche, jusqu'à dix !",
+          run(play, g) {
+            choiceRounds(g, play, [[2, 4], [3, 5], [3, 6], [5, 8], [6, 10]].map(([a, b]) => {
+              const n = rnd(a, b), an = pick(ANIM, 1)[0], de = /^[aeéiou]/i.test(an[1]) ? "d'" : 'de ';
+              const opts = new Set([n]); while (opts.size < 3) { const v = n + rnd(-2, 2); if (v >= 1 && v <= 10) opts.add(v); }
+              return {
+                q: `Combien ${de}${an[1]} ? Touche chaque ${an[2]} pour compter.`,
+                visual: `<div class="herd">${Array.from({ length: n }, () => `<button class="critter" aria-label="${an[2]}">${an[0]}</button>`).join('')}</div>`,
+                options: [...opts].map(v => ({ html: `<span class="num">${v}</span>`, ok: v === n, label: NUM[v] })),
+                after: `Il y a ${NUM[n]} ${an[1]} !`,
+                wrong: 'Essaie encore ! Touche chaque animal pour compter.',
+                onRender: p => { let c = 0; $$('.critter', p).forEach(b => b.onclick = () => { if (b.dataset.k) return; b.dataset.k = ++c; b.classList.add('counted'); sfx.pop(); say(NUM[c]); }); }
+              };
+            }));
+          }
+        },
+        {
+          emoji: '🔟', title: 'De 1 à 10', kind: 'Dans l’ordre',
+          lesson: 'Un, deux, trois, quatre, cinq, six, sept, huit, neuf, dix ! Bravo !',
+          run(play, g) {
+            sequence(g, play, [{
+              q: 'Touche les nombres dans l’ordre : 1, 2, 3…', cls: 'nums',
+              items: Array.from({ length: 10 }, (_, i) => ({ html: `<span class="num">${i + 1}</span>`, label: NUM[i + 1], say: NUM[i + 1] })),
+              wrong: k => `Cherche le ${NUM[k + 1]} !`,
+              after: 'Tu sais compter jusqu’à dix !'
+            }]);
+          }
+        },
+        {
+          emoji: '⚖️', title: 'Où y en a-t-il le plus ?', kind: 'Plus ou moins',
+          lesson: 'Tu sais voir où il y en a le plus !',
+          run(play, g) {
+            choiceRounds(g, play, [3, 3, 2, 2, 1].map(minGap => {
+              const an = pick(ANIM, 1)[0]; let a, b;
+              do { a = rnd(1, 8); b = rnd(1, 8); } while (Math.abs(a - b) < minGap);
+              const de = /^[aeéiou]/i.test(an[1]) ? "d'" : 'de ';
+              return {
+                q: `Où y a-t-il le plus ${de}${an[1]} ?`, cls: 'two',
+                options: [a, b].map(n => ({ html: `<span class="grp" aria-hidden="true">${Array.from({ length: n }, () => `<span>${an[0]}</span>`).join('')}</span>`, ok: n === Math.max(a, b), label: `${NUM[n]} ${n > 1 ? an[1] : an[2]}` })),
+                after: `Ici, il y en a ${NUM[Math.max(a, b)]}. C'est plus !`
+              };
+            }));
+          }
+        }
+      ]
+    },
+    {
+      id: 'formes', emoji: '🔷', title: 'Les formes', cat: 'Formes', ref: 'Autour de nous', color: '#4DAA57',
+      games: [
+        {
+          emoji: '❤️', title: 'Trouve la forme', kind: 'Quiz',
+          lesson: "Le cercle, le triangle, le carré, l'étoile, le cœur et le rectangle : tu les connais tous !",
+          run(play, g) {
+            choiceRounds(g, play, shuffle(SHAPES).map(s => ({
+              q: `Trouve ${s.n} !`,
+              options: [s, ...pick(SHAPES.filter(x => x !== s), 2)].map(x => ({ html: shapeSVG(x.k, x.c), ok: x === s, label: x.n })),
+              after: `${cap(s.n)}, ${s.w} !`
+            })));
+          }
+        },
+        {
+          emoji: '🏠', title: 'La forme qui va avec', kind: 'Relie',
+          lesson: 'Le soleil est un cercle, et le cœur nous dit que Elohîm nous aime !',
+          run(play, g) {
+            choiceRounds(g, play, shuffle(SHAPES).map(s => ({
+              q: `Quelle forme a ${s.o[1]} ?`,
+              visual: `<div class="abc-card"><span class="abc-emoji" aria-hidden="true">${s.o[0]}</span><span class="qt big">${cap(s.o[1])}</span></div>`,
+              options: [s, ...pick(SHAPES.filter(x => x !== s), 2)].map(x => ({ html: shapeSVG(x.k, x.c), ok: x === s, label: x.n })),
+              after: `${cap(s.n)}, ${s.w} !`
+            })));
+          }
+        },
+        {
+          emoji: '🃏', title: 'Les paires de formes', kind: 'Mémoire',
+          lesson: 'Tu as trouvé toutes les paires de formes !',
+          run(play, g) { memory(g, play, SHAPES.map(s => ({ a: { html: shapeSVG(s.k, s.c), label: s.n }, say: `${cap(s.n)} !` }))); }
+        }
+      ]
+    },
+    {
+      id: 'abc', emoji: '🔤', title: "L'ABC de la Bible", cat: 'Lire', ref: 'De A à Z', color: '#E8476A',
+      games: [
+        {
+          emoji: '🅰️', title: 'La première lettre', kind: 'Quiz',
+          lesson: 'Tu connais les lettres de la Bible. Bientôt, tu vas lire tout seul !',
+          run(play, g) {
+            const letters = ABC.map(x => x[0]);
+            choiceRounds(g, play, pick(ABC, 6).map(([L, w, e]) => ({
+              q: `Avec quelle lettre commence « ${w} » ?`,
+              visual: `<div class="abc-card"><span class="abc-emoji" aria-hidden="true">${e}</span><span class="abc-word"><span class="gap" id="gap">?</span>${w.slice(1)}</span></div>`,
+              options: [L, ...pick(letters.filter(x => x !== L), 2)].map(x => ({ html: `<span class="letter">${x}<small>${x.toLowerCase()}</small></span>`, ok: x === L, label: 'la lettre ' + x })),
+              after: `${L}, comme ${w} !`,
+              onOk: () => { const gp = $('#gap'); gp.textContent = w.charAt(0); gp.style.color = 'inherit'; }
+            })));
+          }
+        },
+        {
+          emoji: '👂', title: 'J’écoute la lettre', kind: 'Écoute',
+          lesson: 'Tu reconnais les lettres en les écoutant. Bravo !',
+          run(play, g) {
+            const letters = ABC.map(x => x[0]);
+            choiceRounds(g, play, pick(ABC, 6).map(([L, w]) => ({
+              q: `Touche la lettre ${L} !`, speak: `Touche la lettre ${L}. ${L}, comme ${w}.`,
+              options: [L, ...pick(letters.filter(x => x !== L), 3)].map(x => ({ html: `<span class="letter">${x}<small>${x.toLowerCase()}</small></span>`, ok: x === L, label: 'la lettre ' + x })),
+              after: `${L}, comme ${w} !`
+            })));
+          }
+        },
+        {
+          emoji: '📚', title: 'Mes premières syllabes', kind: 'Je lis',
+          lesson: 'Jé-sus m’ai-me ! Tu commences à lire !',
+          run(play, g) {
+            const syl = pick(SYL, 4).map(s => {
+              const sameC = pick(SYL.filter(x => x[0] === s[0] && x !== s), 1)[0];
+              const sameV = pick(SYL.filter(x => x[1] === s[1] && x !== s && x !== sameC), 1)[0];
+              return { q: `Touche « ${s} » !`, speak: `Touche ${s}. ${s}.`, options: [s, sameC, sameV].map(x => ({ html: `<span class="syl">${x}</span>`, ok: x === s, label: x })), after: `${s} !` };
+            });
+            const words = pick(READ, 3).map(([hy, w]) => ({
+              q: `Où est écrit « ${w} » ?`,
+              options: [[hy, w], ...pick(READ.filter(x => x[1] !== w), 2)].map(([h, ww]) => ({ html: `<span class="syl" style="font-size:1.9rem">${h}</span>`, ok: ww === w, label: ww })),
+              after: `${w} !`
+            }));
+            choiceRounds(g, play, [...syl, ...words]);
+          }
+        }
+      ]
+    },
+    {
+      id: 'brebis', emoji: '🐑', title: 'La brebis perdue', cat: 'Le bon berger', ref: 'Luc 15', color: '#7CC576',
+      games: [
+        {
+          emoji: '🌳', title: 'Cherche la brebis', kind: 'Cache-cache',
+          lesson: 'Jésus est notre bon berger : il ne nous oublie jamais.',
+          run(play, g) {
+            const SPOTS = [['🌳', "l'arbre"], ['🌲', 'le sapin'], ['🪨', 'le rocher'], ['🌿', 'le buisson'], ['🌳', "l'autre arbre"], ['🌾', 'les blés']];
+            const TRIV = ['🦋', '🐞', '🐸', '🍄', '🐌', '🌼'];
+            let round = 0; const R = 3;
+            const go = () => {
+              if (round >= R) { setDots(R, R); setPrompt('Le berger porte sa brebis sur ses épaules et fait la fête !'); return later(() => finish(g), 4200); }
+              setDots(round, R);
+              const hide = rnd(0, 5), triv = shuffle(TRIV); let locked = false;
+              play.innerHTML = `<div class="meadow">${SPOTS.map((s, i) => `<button class="hide" data-i="${i}" aria-label="Regarder derrière ${s[1]}"><span class="cover" aria-hidden="true">${s[0]}</span><span class="behind" aria-hidden="true"></span></button>`).join('')}<div class="shepherd" aria-hidden="true">🧑‍🌾</div></div>`;
+              setPrompt(round === 0 ? 'Le berger a 100 brebis. Un soir, il compte… il en manque une ! Où est la petite brebis ?' : 'Oh ! Encore une brebis perdue. Cherche-la !');
+              $$('.hide', play).forEach((b, k) => b.onclick = () => {
+                if (locked || b.classList.contains('looked')) return;
+                b.classList.add('looked');
+                const beh = b.querySelector('.behind');
+                if (+b.dataset.i === hide) { locked = true; beh.textContent = '🐑'; b.classList.add('found'); round++; praise('Tu as trouvé la brebis !'); later(go, 2800); }
+                else { beh.textContent = triv[k]; sfx.pop(); say('Pas ici… cherche encore !'); }
+              });
+            };
+            go();
+          }
+        },
+        {
+          emoji: '🧑‍🌾', title: 'Ramène les brebis', kind: 'Chasse',
+          lesson: 'Le bon berger connaît chacune de ses brebis.',
+          run(play, g) {
+            const OTHER = [['🐄', 'une vache'], ['🐖', 'un cochon'], ['🐓', 'un coq'], ['🐇', 'un lapin'], ['🦊', 'un renard'], ['🐕', 'un chien']];
+            tapAll(g, play, [3, 4, 5].map(k => ({
+              q: 'Touche toutes les brebis pour les ramener au berger !', count: true,
+              items: [...Array.from({ length: k }, () => ({ html: em('🐑'), label: 'brebis', ok: true })), ...pick(OTHER, 4).map(([e, t]) => ({ html: em(e), label: t, ok: false }))],
+              wrong: 'Ce n’est pas une brebis !',
+              after: `${cap(NUM[k])} brebis ! Elles sont toutes rentrées.`
+            })));
+          }
+        },
+        {
+          emoji: '📜', title: 'L’histoire du berger', kind: 'Dans l’ordre',
+          lesson: 'Jésus est notre bon berger : il ne nous oublie jamais.',
+          run(play, g) {
+            sequence(g, play, [storyRound('Remets l’histoire dans l’ordre. Qu’est-ce qui arrive en premier ?', [
+              ['🧑‍🌾', 'Il compte ses 100 brebis', 'Le berger compte ses cent brebis.'],
+              ['😟', 'Il en manque une !', 'Oh ! Il en manque une !'],
+              ['🔍', 'Il cherche partout', 'Il part chercher la petite brebis perdue.'],
+              ['🎉', 'Il la porte et fait la fête', 'Il la porte sur ses épaules et fait la fête !']
+            ], 'Le bon berger a retrouvé sa brebis !')]);
+          }
+        }
+      ]
+    },
+    {
+      id: 'histoires', emoji: '📖', title: 'Qui ? Quoi ? Où ?', cat: 'Histoires de la Bible', ref: 'Noé, David, Daniel, Jonas…', color: '#D9822B',
+      games: [
+        {
+          emoji: '❓', title: 'Les questions', kind: 'Quiz',
+          lesson: 'Tu connais bien les histoires de la Bible !',
+          run(play, g) {
+            choiceRounds(g, play, pick(QUIZ, 6).map(x => ({
+              q: x.q, after: x.a,
+              options: x.o.map(([e, t, ok]) => ({ html: em(e, t), ok: !!ok, label: t }))
+            })));
+          }
+        },
+        {
+          emoji: '🔗', title: 'Qui va avec quoi ?', kind: 'Mémoire',
+          lesson: 'Noé et l’arc-en-ciel, Jonas et le grand poisson, David et la petite pierre !',
+          run(play, g) {
+            memory(g, play, pick(LINKS, 5).map(([e1, t1, e2, t2, s]) => ({ a: { html: em(e1, t1), label: t1 }, b: { html: em(e2, t2), label: t2 }, say: s })),
+              'Retourne deux cartes. Trouve chaque personnage et son image !');
+          }
+        },
+        {
+          emoji: '✅', title: 'Vrai ou pas vrai ?', kind: 'Vrai / faux',
+          lesson: 'Tu écoutes bien les histoires de la Bible !',
+          run(play, g) {
+            choiceRounds(g, play, pick(TRUE_FALSE, 6).map(([e, t, ok, why]) => ({
+              q: 'Vrai ou pas vrai ?', speak: t + ' Vrai, ou pas vrai ?',
+              visual: `<div class="deed"><span class="qe" aria-hidden="true">${e}</span><p>${t}</p></div>`,
+              cls: 'two', keepOrder: true, options: yesNo(ok), after: why
+            })));
+          }
+        }
+      ]
+    },
+    {
+      id: 'gentil', emoji: '💛', title: 'Je fais plaisir à Elohîm', cat: 'Vivre avec Jésus', ref: 'Éphésiens 4:32', color: '#E0A800',
+      games: [
+        {
+          emoji: '😊', title: 'Oui ou non ?', kind: 'Quiz',
+          lesson: "J'aime les autres comme Jésus m'aime.",
+          run(play, g) {
+            choiceRounds(g, play, pick(DEEDS, 6).map(([e, t, good, why]) => ({
+              q: 'Est-ce que ça fait plaisir à Elohîm ?', speak: t + ' Est-ce que ça fait plaisir à Elohîm ?',
+              visual: `<div class="deed"><span class="qe" aria-hidden="true">${e}</span><p>${t}</p></div>`,
+              cls: 'two', keepOrder: true,
+              options: [
+                { html: em('😊', 'Oui, ça lui fait plaisir'), ok: !!good, label: 'Oui' },
+                { html: em('😟', 'Non, ça le rend triste'), ok: !good, label: 'Non' }
+              ],
+              after: (good ? 'Oui ! ' : 'Non. ') + why
+            })));
+          }
+        },
+        {
+          emoji: '🤔', title: 'Que fais-tu ?', kind: 'Choisis',
+          lesson: 'Je dis merci, je partage, je pardonne, j’aide : ça fait plaisir à Elohîm !',
+          run(play, g) {
+            choiceRounds(g, play, pick(SITU, 5).map(([e, t, good, bad, after]) => ({
+              q: t + ' Que fais-tu ?',
+              visual: `<div class="deed"><span class="qe" aria-hidden="true">${e}</span><p>${t}</p></div>`,
+              cls: 'two',
+              options: [{ html: em(good[0], good[1]), ok: true, label: good[1] }, { html: em(bad[0], bad[1]), ok: false, label: bad[1] }],
+              wrong: 'Hmm… Qu’est-ce qui ferait plaisir à Elohîm ?',
+              after
+            })));
+          }
+        },
+        {
+          emoji: '💖', title: 'Les gestes gentils', kind: 'Chasse',
+          lesson: 'Devenez doux les uns envers les autres. Éphésiens 4:32.',
+          run(play, g) {
+            const k = shuffle(KIND), u = shuffle(UNKIND);
+            tapAll(g, play, [0, 1].map(r => ({
+              q: 'Touche tout ce qui fait plaisir à Elohîm !',
+              items: [...k.slice(r * 3, r * 3 + 3).map(([e, t]) => ({ html: em(e, t), label: t, ok: true })), ...u.slice(r * 3, r * 3 + 3).map(([e, t]) => ({ html: em(e, t), label: t, ok: false }))],
+              wrong: 'Hmm, ça, ça ne fait pas plaisir à Elohîm.',
+              after: 'Ce sont des gestes gentils !'
+            })));
+          }
+        }
+      ]
+    },
+    {
+      id: 'verset', emoji: '👏', title: 'Les versets', cat: 'Versets à retenir', ref: 'Je cache la Parole', color: '#3949AB',
+      games: [
+        {
+          emoji: '👏', title: 'Le verset qui tape', kind: 'Tape les mots',
+          lesson: 'Je cache la Parole dans mon cœur !',
+          run(play, g) {
+            const list = pick(VERSES, 2); let vi = 0;
+            const go = () => {
+              if (vi >= list.length) return finish(g);
+              const [text, ref] = list[vi], words = text.split(' ');
+              setDots(vi, list.length);
+              play.innerHTML = `<div class="verse"><div class="words">${words.map((w, i) => `<button class="word${i === 0 ? ' next' : ''}" data-i="${i}">${w}</button>`).join('')}</div><p class="ref">${ref} (BYM)</p></div><div class="clap" id="clap" aria-hidden="true">👏</div>`;
+              setPrompt('Touche les mots un par un, et tape dans tes mains sur chaque mot !', 'Écoute le verset. ' + text + ' Maintenant, touche les mots un par un, et tape dans tes mains !');
+              let k = 0;
+              $$('.word', play).forEach(b => b.onclick = () => {
+                if (+b.dataset.i !== k) return shake(b);
+                b.classList.remove('next'); b.classList.add('lit');
+                const c = $('#clap'); c.classList.remove('go'); void c.offsetWidth; c.classList.add('go');
+                sfx.clap(); say(b.textContent.replace(/[.,!]/g, '')); k++;
+                const nx = $$('.word', play)[k];
+                if (nx) nx.classList.add('next');
+                else { vi++; later(() => { toast('Bravo !'); sfx.ok(); say('Bravo ! ' + text); }, 700); later(go, 5600); }
+              });
+            };
+            go();
+          }
+        },
+        {
+          emoji: '🧩', title: 'Le mot qui manque', kind: 'Complète',
+          lesson: 'Tu connais les mots de la Bible par cœur !',
+          run(play, g) {
+            choiceRounds(g, play, shuffle(GAPS).map(([pre, w, post, opts, ref]) => ({
+              q: 'Quel mot manque ?', speak: `${pre}… ${post} Quel mot manque ?`,
+              visual: `<div class="verse"><p class="vtext">« ${pre} <span class="gap" id="gap">?</span> ${post} »</p><p class="ref">${ref} (BYM)</p></div>`,
+              options: opts.map(o => ({ html: `<span class="qt big">${o}</span>`, ok: o === w, label: o })),
+              onOk: () => { const gp = $('#gap'); gp.textContent = w; gp.style.color = 'inherit'; },
+              after: `${pre} ${w} ${post}`
+            })));
+          }
+        },
+        {
+          emoji: '🔀', title: 'Les mots en ordre', kind: 'Dans l’ordre',
+          lesson: 'Laissez les enfants venir à moi : Jésus t’aime, toi aussi !',
+          run(play, g) {
+            sequence(g, play, [['Laissez les enfants venir à moi.', 'Matthieu 19:14'], ['Tu aimeras ton prochain comme toi-même.', 'Matthieu 22:39']].map(([t]) => ({
+              q: 'Remets les mots du verset dans l’ordre !', speak: 'Écoute : ' + t + ' Remets les mots dans l’ordre !', cls: 'words',
+              items: t.split(' ').map(w => ({ html: w, label: w.replace(/[.,]/g, ''), say: w.replace(/[.,]/g, '') })),
+              wrong: 'Écoute bien. Quel mot vient maintenant ?',
+              after: t
+            })));
+          }
+        }
+      ]
+    }
+  ];
+  ADV.forEach(a => a.games.forEach((g, i) => { g.n = i + 1; g.adv = a; g.key = a.id + '/' + (i + 1); }));
+  const ALL = ADV.flatMap(a => a.games);
+  // Étoiles de l'ancienne version (1 par aventure) → premier jeu de l'aventure
+  ADV.forEach(a => { if (state.stars[a.id] === true) { state.stars[a.id + '/1'] = true; delete state.stars[a.id]; } });
+  save();
+
+  const starTotal = () => ALL.filter(g => state.stars[g.key]).length;
+  const advStars = a => a.games.filter(g => state.stars[g.key]).length;
+  const updateStars = () => { const n = starTotal(); starCount.textContent = `${n} / ${ALL.length}`; return n; };
+
+  function finish(g) {
+    state.stars[g.key] = true; save(); const n = updateStars();
+    later(() => {
+      sfx.win(); burst();
+      const all = n === ALL.length, nextG = g.adv.games[g.n], advDone = advStars(g.adv) === 3;
+      const ov = document.createElement('div'); ov.className = 'overlay';
+      ov.innerHTML = `<div class="reward" role="dialog" aria-modal="true" aria-labelledby="rwT">
+        <div class="big-star" aria-hidden="true">⭐</div>
+        <h2 id="rwT">Bravo !</h2>
+        <p>${g.lesson}</p>
+        <p class="small">${g.adv.title} : ${advStars(g.adv)} étoile${advStars(g.adv) > 1 ? 's' : ''} sur 3 · En tout : ${n} sur ${ALL.length}</p>
+        <div class="row">
+          ${all ? '<button class="btn primary" id="rwDip">🎓 Mon diplôme</button>' : nextG ? `<button class="btn primary" id="rwNext">Jeu suivant ▸</button>` : '<button class="btn primary" id="rwHome">Autres aventures</button>'}
+          <button class="btn" id="rwAdv">Les 3 jeux</button>
+          <button class="btn" id="rwAgain">Rejouer</button>
+        </div></div>`;
+      document.body.appendChild(ov);
+      say('Bravo ! Tu gagnes une étoile ! ' + g.lesson + (all ? ' Tu as toutes les étoiles ! Va voir ton diplôme !' : advDone ? ' Tu as fini toute l’aventure !' : ''));
+      const first = $('#rwDip') || $('#rwNext') || $('#rwHome');
+      if ($('#rwDip')) $('#rwDip').onclick = showDiploma;
+      if ($('#rwNext')) $('#rwNext').onclick = () => startGame(nextG);
+      if ($('#rwHome')) $('#rwHome').onclick = showHome;
+      $('#rwAdv').onclick = () => showAdventure(g.adv);
+      $('#rwAgain').onclick = () => startGame(g);
+      first.focus();
+    }, 900);
+  }
+
+  /* ---------- Écrans ---------- */
+  function clearScreen() {
+    token++; $$('.overlay').forEach(o => o.remove());
+    if (hasTTS) { try { speechSynthesis.cancel(); } catch (e) {} }
+    window.scrollTo(0, 0);
+  }
+  const miniStars = k => `<span class="mini" aria-label="${k} étoile${k > 1 ? 's' : ''} sur 3">${[0, 1, 2].map(i => `<span class="${i < k ? 'on' : ''}">${i < k ? '⭐' : '☆'}</span>`).join('')}</span>`;
+
+  function showHome() {
+    clearScreen(); homeBtn.hidden = true;
+    const n = updateStars();
+    stage.innerHTML = `<section>
+      <div class="hero">
+        <div class="hero-text">
+          <p class="eyebrow">Apprendre la Bible en s'amusant · 3–6 ans</p>
+          <h1>Elohîm m'aime <span class="heart">!</span></h1>
+          <button class="listen" id="hello"><span aria-hidden="true">🔊</span> Écouter</button>
+        </div>
+        <div class="sun" aria-hidden="true">😊</div>
+      </div>
+      <h2 class="pick">Choisis une aventure</h2>
+      <div class="map">${ADV.map((a, i) => { const k = advStars(a); return `<button class="spot ${k === 3 ? 'done' : ''}" data-id="${a.id}" style="--c:${a.color};--d:${i * 45}ms">
+        <span class="spot-emoji" aria-hidden="true">${a.emoji}</span>
+        <span class="spot-cat">${a.cat}</span>
+        <span class="spot-title">${a.title}</span>
+        <span class="spot-ref">${a.ref} · 3 jeux</span>
+        ${miniStars(k)}
+      </button>`; }).join('')}</div>
+      <div class="extras">
+        <button class="extra" id="prayBtn"><span aria-hidden="true">🙏</span> Mes petites prières</button>
+        <button class="extra" id="dipBtn"><span aria-hidden="true">🎓</span> Mon diplôme <small>${n} / ${ALL.length} ⭐</small></button>
+      </div>
+      <div class="parents">
+        <p><b>Pour les parents :</b> jouez ensemble, 10 minutes suffisent. Chaque consigne est lue à voix haute (bouton 🔊 pour la répéter). Les étoiles restent enregistrées dans ce navigateur.</p>
+        <div class="voice-row">
+          <label for="voiceSel">Voix</label>
+          <select id="voiceSel"></select>
+          <button class="btn" id="testVoice">Essayer</button>
+        </div>
+        <p>Les voix marquées ✨ sont les plus douces et naturelles. Avec Microsoft Edge, choisissez par exemple « Denise » ou « Vivienne » ; avec Chrome, « Google français ».</p>
+      </div>
+    </section>`;
+    $('#hello').onclick = () => say("Bonjour ! Elohîm t'aime très fort ! Choisis une aventure, et gagne des étoiles !");
+    $$('.spot').forEach(b => b.onclick = () => showAdventure(ADV.find(a => a.id === b.dataset.id)));
+    $('#prayBtn').onclick = showPrayers;
+    $('#dipBtn').onclick = showDiploma;
+    const sel = $('#voiceSel'); fillVoiceSelect(sel);
+    sel.onchange = () => { voice = voices.find(v => v.name === sel.value) || voice; state.voice = voice ? voice.name : ''; save(); say("Bonjour ! Elohîm t'aime très fort !"); };
+    $('#testVoice').onclick = () => say("Bonjour ! Elohîm t'aime très fort. Jésus t'aime, toi aussi !");
+  }
+
+  function showAdventure(a) {
+    clearScreen(); homeBtn.hidden = false;
+    stage.innerHTML = `<section style="--c:${a.color}">
+      <button class="back" id="backHome">◂ Toutes les aventures</button>
+      <div class="game-head"><span class="game-emoji" aria-hidden="true">${a.emoji}</span><div><p class="eyebrow">${a.cat} · ${a.ref}</p><h2>${a.title}</h2></div></div>
+      <div class="games">${a.games.map(g => `<button class="gcard ${state.stars[g.key] ? 'done' : ''}" data-n="${g.n}">
+        <span class="gnum">Jeu ${g.n}</span>
+        <span class="ge" aria-hidden="true">${g.emoji}</span>
+        <span class="gt">${g.title}</span>
+        <span class="gk">${g.kind}</span>
+        <span class="gs" aria-label="${state.stars[g.key] ? 'étoile gagnée' : 'pas encore d’étoile'}">${state.stars[g.key] ? '⭐' : '☆'}</span>
+      </button>`).join('')}</div>
+    </section>`;
+    $('#backHome').onclick = showHome;
+    $$('.gcard').forEach(b => b.onclick = () => startGame(a.games[+b.dataset.n - 1]));
+    say(`${a.title}. Choisis un jeu : ${a.games.map(g => g.title).join(', ')}.`);
+  }
+
+  function startGame(g) {
+    clearScreen(); homeBtn.hidden = false;
+    stage.innerHTML = `<section style="--c:${g.adv.color}">
+      <button class="back" id="backAdv">◂ ${g.adv.title} · les 3 jeux</button>
+      <div class="game-head"><span class="game-emoji" aria-hidden="true">${g.emoji}</span><div><p class="eyebrow">${g.adv.title} · Jeu ${g.n} sur 3</p><h2>${g.title}</h2></div></div>
+      <div class="prompt"><button class="round-btn replay" id="replay" aria-label="Répéter la consigne">🔊</button><p id="promptText" aria-live="polite"></p></div>
+      <div class="dots" id="dots"></div>
+      <div class="play" id="play"></div>
+    </section>`;
+    $('#backAdv').onclick = () => showAdventure(g.adv);
+    $('#replay').onclick = () => say(lastSpeak);
+    g.run($('#play'), g);
+  }
+
+  function showPrayers() {
+    clearScreen(); homeBtn.hidden = false;
+    stage.innerHTML = `<section style="--c:#8E44AD">
+      <div class="game-head"><span class="game-emoji" aria-hidden="true">🙏</span><div><p class="eyebrow">Parler à Elohîm</p><h2>Mes petites prières</h2></div></div>
+      <div class="prayers">${PRAYERS.map(([t, e, lines], i) => `<article class="prayer"><h3><span aria-hidden="true">${e}</span>${t}</h3>${lines.map(l => `<p>${l}</p>`).join('')}<p class="amen">Amen.</p><button class="listen" data-i="${i}"><span aria-hidden="true">🔊</span> Prier ensemble</button></article>`).join('')}</div>
+      <p class="tip" style="margin-top:18px"><b>Astuce :</b> joins tes mains, ferme les yeux, et parle à Elohîm comme à un papa qui t'aime. Tu peux aussi lui dire merci avec tes propres mots !</p>
+    </section>`;
+    $$('.prayer .listen').forEach(b => b.onclick = () => { const p = PRAYERS[+b.dataset.i]; say(p[2].join(' ') + ' Amen.'); });
+  }
+
+  function showDiploma() {
+    clearScreen(); homeBtn.hidden = false;
+    const n = updateStars(), all = n === ALL.length;
+    const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const row = `<div class="starrow">${ADV.map(a => { const k = advStars(a); return `<span class="${k === 3 ? 'on' : ''}" title="${a.title}" aria-label="${a.title} : ${k} étoiles sur 3"><span aria-hidden="true">${k === 3 ? '⭐' : a.emoji}</span><small>${k}/3</small></span>`; }).join('')}</div>`;
+    if (!all) {
+      const left = ALL.length - n;
+      stage.innerHTML = `<section class="diploma"><p class="eyebrow">Mon diplôme</p><h2>Encore ${left} étoile${left > 1 ? 's' : ''} !</h2>
+        <p>Joue aux 3 jeux de chaque aventure pour gagner ton diplôme « Elohîm m'aime ! ».</p>${row}
+        <div class="row"><button class="btn primary" id="goPlay">Jouer</button></div></section>`;
+      say(`Encore ${left <= 10 ? NUM[left] : left} étoile${left > 1 ? 's' : ''} pour gagner ton diplôme !`);
+      $('#goPlay').onclick = () => startGame(ALL.find(x => !state.stars[x.key]));
+      return;
+    }
+    stage.innerHTML = `<section class="diploma">
+      <p class="eyebrow">Diplôme</p><h2>Bravo !</h2>
+      <p>Ce diplôme est remis à</p>
+      <input class="name" id="childName" type="text" autocomplete="off" placeholder="Ton prénom" aria-label="Prénom de l'enfant" maxlength="30">
+      <p>qui a terminé son jeu <b>« Elohîm m'aime ! »</b><br>et qui sait que Elohîm l'aime très fort.</p>
+      ${row}
+      <div class="meta"><span>Date : ${date}</span><span>Signature des parents : ....................</span></div>
+      <div class="row"><button class="btn" id="resetBtn">Recommencer toutes les aventures</button></div>
+    </section>`;
+    const nm = $('#childName'); nm.value = state.name || '';
+    nm.oninput = () => { state.name = nm.value; save(); };
+    sfx.win(); burst(); say("Bravo ! Tu as gagné ton diplôme ! Elohîm t'aime très fort !");
+    const rb = $('#resetBtn');
+    rb.onclick = () => {
+      if (rb.dataset.sure) { state.stars = {}; save(); showHome(); return; }
+      rb.dataset.sure = '1'; rb.textContent = 'Sûr ? Les étoiles seront effacées. Touche encore pour confirmer.';
+    };
+  }
+
+  homeBtn.onclick = showHome;
+  showHome();
+})();
+</script>
+
+</body>
+</html>
