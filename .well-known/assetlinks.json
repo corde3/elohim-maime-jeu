@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.corde3.elohimmaime",
+        "sha256_cert_fingerprints": ["A5:6D:2A:9C:19:DB:E8:D4:65:D0:CB:22:ED:A4:99:70:84:64:63:7B:3C:F8:0E:13:49:10:E3:22:33:23:1E:F7"]
+      }
+    }]
